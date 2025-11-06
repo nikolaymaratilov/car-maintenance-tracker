@@ -10,9 +10,9 @@ import lombok.*;
 @NoArgsConstructor
 public class LoginRequest {
 
-    @NotBlank
+    @NotBlank(message = "Required field!")
     String username;
 
-    @NotBlank
+    @NotBlank(message = "Required field!")
     String password;
 }

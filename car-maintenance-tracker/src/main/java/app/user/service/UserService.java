@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import app.web.dto.LoginRequest;
 import app.web.dto.RegisterRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,10 +31,8 @@ public class UserService {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User with [%s] id does not exist. ".formatted(id)));
     }
 
-    public Optional<User> getByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
 
+    @Transactional
     public void createNewUser(RegisterRequest registerRequest) {
 
         if (!registerRequest.getPassword().equals(registerRequest.getRepeatPassword())) {
