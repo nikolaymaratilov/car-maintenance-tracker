@@ -27,7 +27,7 @@
             </svg>
         </div>
         <button class="welcome-btn">
-            Welcome <span>Driver</span>
+            <span th:text="${user.username}"></span>
         </button>
         <a href="/profile" class="edit-profile-btn">Edit Profile</a>
     </div>
@@ -62,12 +62,12 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="stat-label">Total cars</span>
-                <span class="stat-value">3</span>
+                <span th:text="${cars.size()}" class="stat-value">3</span>
                 <span class="stat-hint">Across your current garage</span>
             </div>
             <div class="stat-card">
                 <span class="stat-label">Latest additions</span>
-                <span class="stat-value">2</span>
+                <span th:text="${countOfLatestAdditions}" class="stat-value">2</span>
                 <span class="stat-hint">Added in the last 30 days</span>
             </div>
             <div class="stat-card">
@@ -78,125 +78,100 @@
         </div>
 
         <form class="filters" action="/cars" method="get">
+
             <div class="filter-field">
-                <label for="brand">Brand</label>
-                <select id="brand" name="brand">
+                <label>Brand</label>
+                <select name="brand" onchange="this.form.submit()">
                     <option value="">All</option>
-                    <option value="Audi">Audi</option>
-                    <option value="BMW">BMW</option>
-                    <option value="Tesla">Tesla</option>
+                    <option th:each="entry : ${brandModels}"
+                            th:value="${entry.key}"
+                            th:text="${entry.key}"
+                            th:selected="${brand == entry.key}">
+                    </option>
                 </select>
             </div>
+
             <div class="filter-field">
-                <label for="year">Year</label>
-                <select id="year" name="year">
-                    <option value="">Any year</option>
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
+                <label>Model</label>
+                <select name="model">
+                    <option value="">All</option>
+
+                    <th:block th:if="${brand != null && !brand.isEmpty()}">
+                        <th:block th:each="entry : ${brandModels}">
+                            <option th:if="${entry.key.equals(brand)}"
+                                    th:each="m : ${entry.value}"
+                                    th:value="${m}"
+                                    th:text="${m}"
+                                    th:selected="${model != null && model.equals(m)}">
+                            </option>
+                        </th:block>
+                    </th:block>
+
                 </select>
+
             </div>
+
             <div class="filter-field grow">
                 <label for="search">Quick search</label>
-                <input id="search" name="search" type="search" placeholder="Search by model or VIN">
+                <input id="search"
+                       name="search"
+                       type="search"
+                       placeholder="Search by VIN or year"
+                       th:value="${search}">
             </div>
+
             <button type="submit" class="btn ghost small">Apply filters</button>
+
         </form>
 
-        <section class="cars-grid sample">
-            <article class="car-card">
+
+        <section class="cars-grid" th:if="${#lists.size(filteredCars) > 0}">
+            <article class="car-card" th:each="car : ${filteredCars}">
                 <header class="car-header">
                     <div class="car-brand">
-                        <div class="car-avatar">A</div>
+                        <div class="car-avatar">
+                            <span th:text="${car.brand.substring(0,1)}"></span>
+                        </div>
                         <div>
-                            <span class="car-brand">Audi</span>
-                            <span class="car-model">A4 Quattro</span>
+                            <span class="car-brand" th:text="${car.brand}"></span>
+                            <span class="car-model" th:text="${car.model}"></span>
                         </div>
                     </div>
+
                     <span class="status-tag">Active</span>
                 </header>
+
                 <div class="car-info">
                     <div>
                         <span class="meta-label">Year</span>
-                        <span class="meta-value">2022</span>
+                        <span class="meta-value" th:text="${car.year}"></span>
                     </div>
                     <div>
                         <span class="meta-label">VIN</span>
-                        <span class="meta-value">WAUZZZF40NA123456</span>
+                        <span class="meta-value" th:text="${car.vin}"></span>
                     </div>
                     <div>
                         <span class="meta-label">Maintenance logs</span>
                         <span class="meta-value">4</span>
                     </div>
                 </div>
-                <div class="car-actions">
-                    <a class="btn ghost small" href="#">View details</a>
-                    <a class="btn ghost small" href="#">Log maintenance</a>
-                </div>
-            </article>
 
-            <article class="car-card">
-                <header class="car-header">
-                    <div class="car-brand">
-                        <div class="car-avatar">T</div>
-                        <div>
-                            <span class="car-brand">Tesla</span>
-                            <span class="car-model">Model 3</span>
-                        </div>
-                    </div>
-                    <span class="status-tag warn">Service soon</span>
-                </header>
-                <div class="car-info">
-                    <div>
-                        <span class="meta-label">Year</span>
-                        <span class="meta-value">2023</span>
-                    </div>
-                    <div>
-                        <span class="meta-label">VIN</span>
-                        <span class="meta-value">5YJ3E1EA8PF123789</span>
-                    </div>
-                    <div>
-                        <span class="meta-label">Maintenance logs</span>
-                        <span class="meta-value">6</span>
-                    </div>
-                </div>
                 <div class="car-actions">
-                    <a class="btn ghost small" href="#">View details</a>
-                    <a class="btn ghost small" href="#">Log maintenance</a>
-                </div>
-            </article>
-
-            <article class="car-card">
-                <header class="car-header">
-                    <div class="car-brand">
-                        <div class="car-avatar">B</div>
-                        <div>
-                            <span class="car-brand">BMW</span>
-                            <span class="car-model">320d Touring</span>
-                        </div>
-                    </div>
-                    <span class="status-tag muted">No logs yet</span>
-                </header>
-                <div class="car-info">
-                    <div>
-                        <span class="meta-label">Year</span>
-                        <span class="meta-value">2020</span>
-                    </div>
-                    <div>
-                        <span class="meta-label">VIN</span>
-                        <span class="meta-value">WBA8G12030K123654</span>
-                    </div>
-                    <div>
-                        <span class="meta-label">Maintenance logs</span>
-                        <span class="meta-value">0</span>
-                    </div>
-                </div>
-                <div class="car-actions">
-                    <a class="btn ghost small" href="#">View details</a>
-                    <a class="btn ghost small" href="#">Log maintenance</a>
+                    <a class="btn ghost small" th:href="@{'/cars/' + ${car.id}}">View details</a>
+                    <a class="btn ghost small" th:href="@{'/maintenance/new?carId=' + ${car.id}}">Log maintenance</a>
+                    <form th:action="@{'/cars/' + ${car.id}}" method="post" style="display: inline;">
+                        <input type="hidden" name="_method" value="delete"/>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn ghost small" style="color: #f97316;">Delete</button>
+                    </form>
                 </div>
             </article>
         </section>
+
+        <p th:if="${#lists.isEmpty(filteredCars)}" style="margin-top: 1rem;">
+            No cars match your filters.
+        </p>
+
     </section>
 
     <aside class="sidebar">

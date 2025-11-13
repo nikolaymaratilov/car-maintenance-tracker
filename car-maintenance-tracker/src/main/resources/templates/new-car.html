@@ -48,7 +48,7 @@
     </section>
 
     <section class="form-shell">
-        <form class="car-form" th:action="@{/cars/new-car}" th:method="POST" th:object="${car}">
+        <form class="car-form" th:action="@{/new-car}" th:method="POST" th:object="${car}">
             <input type="hidden" name="_csrf" value="">
 
             <div class="alert-warning" th:if="${errorMessage}" th:text="${errorMessage}"></div>

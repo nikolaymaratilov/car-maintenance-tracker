@@ -9,16 +9,22 @@ import app.user.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.UUID;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("/cars")
 public class CarsController {
 
     private final UserService userService;
@@ -29,25 +35,41 @@ public class CarsController {
         this.carService = carService;
     }
 
-    @GetMapping
-    private ModelAndView getCars(@AuthenticationPrincipal UserData userData){
+    @GetMapping("/cars")
+    public ModelAndView getCars(@AuthenticationPrincipal UserData userData,
+                                @RequestParam(required = false) String brand,
+                                @RequestParam(required = false) String model,
+                                @RequestParam(required = false) String search){
 
         User user = userService.getById(userData.getUserId());
 
         List<Car> cars = carService.getCarsForUser(user);
         int countOfLatestAdditions = carService.getLatestAdditions(cars);
+        Map<String, Set<String>> brandModels = cars.stream()
+                .collect(Collectors.groupingBy(Car::getBrand,Collectors.mapping(Car::getModel,Collectors.toSet())));
+        List<Car> filteredCars = carService.filterCars(
+                user,
+                brand,
+                model,
+                search
+        );
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("cars");
         modelAndView.addObject("user",user);
         modelAndView.addObject("cars",cars);
+        modelAndView.addObject("brandModels",brandModels);
+        modelAndView.addObject("filteredCars",filteredCars);
         modelAndView.addObject("countOfLatestAdditions",countOfLatestAdditions);
+        modelAndView.addObject("brand",brand);
+        modelAndView.addObject("model",model);
+        modelAndView.addObject("search",search);
 
         return modelAndView;
     }
 
     @GetMapping("/new-car")
-    private ModelAndView getNewCar(){
+    public ModelAndView getNewCar(){
 
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("new-car");
@@ -57,7 +79,7 @@ public class CarsController {
     }
 
     @PostMapping("/new-car")
-    private ModelAndView addCar(@AuthenticationPrincipal UserData userData, @ModelAttribute("car") Car car, BindingResult bindingResult){
+    public ModelAndView addCar(@AuthenticationPrincipal UserData userData, @ModelAttribute("car") Car car, BindingResult bindingResult){
 
         if (bindingResult.hasErrors()) {
             ModelAndView modelAndView = new ModelAndView("new-car");
@@ -79,5 +101,12 @@ public class CarsController {
 
             return  modelAndView;
         }
+    }
+
+    @DeleteMapping("/cars/{carId}")
+    public ModelAndView deleteCar(@AuthenticationPrincipal UserData userData, @PathVariable UUID carId) {
+        User user = userService.getById(userData.getUserId());
+        carService.deleteCar(carId, user);
+        return new ModelAndView("redirect:/cars");
     }
 }
